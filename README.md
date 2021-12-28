@@ -1,1 +1,1 @@
-# livemap..github.io
+# livemap.github.io
