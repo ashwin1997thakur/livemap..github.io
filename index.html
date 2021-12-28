@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Locate the user</title>
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+      import {
+        getFirestore,
+        doc,
+        getDoc,
+        getDocs,
+        query,
+        onSnapshot,
+        collection,
+        addDoc,
+      } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDHoEO_aAbu0p9wf_Zm4YQyasfSwArG0IE",
+        authDomain: "brixxsmapbox.firebaseapp.com",
+        projectId: "brixxsmapbox",
+        storageBucket: "brixxsmapbox.appspot.com",
+        messagingSenderId: "685690638308",
+        appId: "1:685690638308:web:08db62e4cbcd5fe08f01f1",
+        measurementId: "G-3F81LN7TR9",
+      };
+      mapboxgl.accessToken =
+        "pk.eyJ1IjoiZGV2ZWxvcG1lbnQxIiwiYSI6ImNreDduNGZiNDA4M2cyb3FjaHdkMzRmOTAifQ.rmaNEeyqCmavn7PbFTSzmw";
+      const map = new mapboxgl.Map({
+        container: "map",
+        style: "mapbox://styles/mapbox/dark-v10",
+        center: [-120, 50],
+        zoom: 6,
+      });
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore();
+      const userNameList = [];
+      const userNameListSubCollection = [];
+      var listofuser;
+      var counter = 0;
+      var docsSnapFullData = [];
+      var latitude;
+      var longitude;
+
+      map.on("load", async () => {
+        const updateSource = setInterval(async () => {
+          await getLocation(updateSource);
+        }, 30000);
+
+        async function getLocation(updateSource) {
+          const docsSnap = await getDocs(collection(db, "collection"));
+          docsSnap.forEach((doc) => {
+            console.log(doc.data());
+            docsSnapFullData[counter] = doc.data();
+            counter = counter + 1;
+          });
+
+          counter = 0;
+          for (let i = 0; i < docsSnapFullData.length; i++) {
+            new mapboxgl.Marker({
+              draggable: false,
+              color: "red",
+            })
+              .setLngLat([
+                docsSnapFullData[i]["long"],
+                docsSnapFullData[i]["lat"],
+              ])
+              .setPopup(
+                new mapboxgl.Popup({ offset: 25 }) // add popups
+                  .setHTML(
+                    `<h3>${docsSnapFullData[i]["userName"]}</h3><p>${docsSnapFullData[i]["lat"]}</p><p>${docsSnapFullData[i]["long"]}</p>`
+                  )
+              )
+              .addTo(map);
+          }
+        }
+        docsSnapFullData = [];
+      });
+    </script>
+  </body>
+</html>
